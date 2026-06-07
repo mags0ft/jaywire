@@ -16,6 +16,8 @@ Features:
 - Restoring and resuming old sessions
 - Basic isolation (the agent runs in a reasonably secured Docker container, but I won't guarantee anything - it has root in there!)
 - Highly efficient prompting, which makes your agent super cheap to use
+- Uses OpenAI's official Agent SDK, it's very easy to hack together your own custom features!
+- Clean code, no slop
 
 ## Get started
 

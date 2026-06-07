@@ -1,3 +1,9 @@
+"""
+Handles the DB connections to store persistent data cleanly. I admit, some of
+these boring SQL statements were written by AI, but heck, as long as they are
+reasonable, there is no reason not to use them. They're fine, I checked.
+"""
+
 from sqlite3 import Connection, Cursor
 
 from .config import configuration
@@ -7,11 +13,20 @@ database_path = databases.get("memory", "./data/agent.db")
 
 
 def get_db_connection() -> tuple[Connection, Cursor]:
+    """
+    Retrieves a connection and cursor to the SQLite database.
+    """
+    
     conn = Connection(database_path)
+
     return conn, conn.cursor()
 
 
 def init_db():
+    """
+    Makes sure the DB is fine and up and running! :)
+    """
+
     conn, cursor = get_db_connection()
 
     cursor.execute("""
@@ -50,11 +65,13 @@ def new_memory(content: str):
     conn.commit()
     conn.close()
 
+
 def delete_memory(memory_id: int):
     conn, cursor = get_db_connection()
     cursor.execute("DELETE FROM memory WHERE id = ?", (memory_id,))
     conn.commit()
     conn.close()
+
 
 def get_memories() -> list[dict]:
     conn, cursor = get_db_connection()
@@ -64,11 +81,13 @@ def get_memories() -> list[dict]:
 
     return [{"id": row[0], "mem": row[1], "time": row[2]} for row in rows]
 
+
 def overwrite_memory(memory_id: int, new_content: str):
     conn, cursor = get_db_connection()
     cursor.execute("UPDATE memory SET content = ?, timestamp = CURRENT_TIMESTAMP WHERE id = ?", (new_content, memory_id))
     conn.commit()
     conn.close()
+
 
 def new_skill(name: str, content: str):
     conn, cursor = get_db_connection()
@@ -76,11 +95,13 @@ def new_skill(name: str, content: str):
     conn.commit()
     conn.close()
 
+
 def delete_skill(skill_id: int):
     conn, cursor = get_db_connection()
     cursor.execute("DELETE FROM skills WHERE id = ?", (skill_id,))
     conn.commit()
     conn.close()
+
 
 def get_skills() -> list[dict[str, str | int]]:
     conn, cursor = get_db_connection()
@@ -90,11 +111,13 @@ def get_skills() -> list[dict[str, str | int]]:
 
     return [{"id": row[0], "name": row[1], "content": row[2]} for row in rows]
 
+
 def overwrite_skill(skill_id: int, new_name: str, new_content: str):
     conn, cursor = get_db_connection()
     cursor.execute("UPDATE skills SET name = ?, content = ?, timestamp = CURRENT_TIMESTAMP WHERE id = ?", (new_name, new_content, skill_id))
     conn.commit()
     conn.close()
+
 
 def new_todo(content: str):
     conn, cursor = get_db_connection()
@@ -102,11 +125,13 @@ def new_todo(content: str):
     conn.commit()
     conn.close()
 
+
 def delete_todos():
     conn, cursor = get_db_connection()
     cursor.execute("DELETE FROM todos WHERE done = 1")
     conn.commit()
     conn.close()
+
 
 def get_todos() -> list[dict]:
     conn, cursor = get_db_connection()
@@ -116,10 +141,13 @@ def get_todos() -> list[dict]:
 
     return [{"id": row[0], "content": row[1], "done": "yes" if bool(row[2]) else "no"} for row in rows]
 
+
 def tick_todo(todo_id: int, done: bool):
     conn, cursor = get_db_connection()
     cursor.execute("UPDATE todos SET done = ?, timestamp = CURRENT_TIMESTAMP WHERE id = ?", (done, todo_id))
     conn.commit()
     conn.close()
 
+
+# initialize the database on import to ensure tables are created
 init_db()

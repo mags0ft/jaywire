@@ -1,3 +1,7 @@
+"""
+Handles prompting the LLM.
+"""
+
 from datetime import datetime
 
 from .config import configuration
@@ -5,6 +9,11 @@ from .util import squeeze
 
 
 def build_system_prompt(memory_list: list[str], skill_list: list[str]):
+    """
+    Builds the super short and efficient system prompt to the agent - the one
+    we all know and love!
+    """
+
     context = configuration.get("context", {})
     agent_name = context.get("agent_name", "Jaywire")
     user_name = context.get("user_name", "the user")

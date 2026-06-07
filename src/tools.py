@@ -1,3 +1,8 @@
+"""
+Tools the agent can call. Before you ask, they're absolutely not as secure as
+they can be.
+"""
+
 from datetime import datetime
 from subprocess import Popen, PIPE
 from typing import List

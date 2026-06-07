@@ -1,3 +1,7 @@
+"""
+The main loop that keeps the agent running.
+"""
+
 import asyncio
 import warnings
 from os import getenv
