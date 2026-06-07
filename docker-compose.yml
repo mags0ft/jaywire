@@ -1,0 +1,28 @@
+services:
+  jaywire:
+    build: .
+    container_name: jaywire
+
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+
+    env_file:
+      - ./.env
+    
+    volumes:
+      - ./data:/app/data
+      - ./work:/app/work
+
+    security_opt:
+      - no-new-privileges:true
+
+    deploy:
+      resources:
+        limits:
+          cpus: '2.00'
+          memory: 4G
+
+    cap_drop:
+      - ALL
+
+    entrypoint: sleep infinity

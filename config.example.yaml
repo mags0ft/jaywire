@@ -1,0 +1,36 @@
+main_model:
+  slug: "deepseek/deepseek-v4-flash"
+  provider: "openrouter"
+  max_tokens: 8192
+  reasoning: "high"
+
+cheap_model:
+  slug: "deepseek/deepseek-v4-flash"
+  provider: "openrouter"
+
+fallback_model:
+  slug: "google/gemma-4-31b-it"
+  provider: "openrouter"
+
+providers:
+  openrouter:
+    api_key_env: OPENROUTER_API_KEY
+    base_url: https://openrouter.ai/api/v1
+
+max_turns: 50
+
+mcp:
+  searxng:
+    url: "https://.../mcp"
+    headers:
+      User-Agent: "Jaywire/0.0.1"
+    timeout: 10
+    max_retries: 3
+
+context:
+  agent_name: "Jaywire"
+  user_name: "John Doe"
+
+databases:
+  memory: "./data/agent.db"
+  sessions: "./data/sessions.db"
