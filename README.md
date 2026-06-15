@@ -2,7 +2,7 @@
 
 Everyone is building agents, so I just had to do it too. I'm sorry.
 
-This one is, in contrast to the other popular ones (looking at you, OpenClaw and Hermes Agent), very token-efficient. The default system prompt is ~100 tokens, but it can stil do advanced tasks.
+This one is, in contrast to the other popular ones (looking at you, OpenClaw and Hermes Agent), very token-efficient. The default system prompt is ~100 tokens, but it can stil do advanced tasks. 17 tools provided by default.
 For example, I got it to effortlessly figure out how the printer in my network works, print something on it and store it all in a skill file.
 
 Tested with Deepseek V4 Flash, but should work with any capable model.

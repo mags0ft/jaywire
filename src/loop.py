@@ -3,6 +3,7 @@ The main loop that keeps the agent running.
 """
 
 import asyncio
+from uuid import uuid4
 import warnings
 from os import getenv
 
@@ -21,6 +22,7 @@ from agents.extensions.memory import AdvancedSQLiteSession
 from agents.run import get_default_agent_runner
 from dotenv import load_dotenv
 
+from .connectors.signal import SignalClient, SignalMessage
 from .config import configuration
 from .prompts import build_system_prompt
 from .tools import tools_list
@@ -76,7 +78,7 @@ def _get_default_loop():
     return loop
 
 
-async def _run_task_async(agent: Agent, task: str, session: AdvancedSQLiteSession):
+async def _run_task_async(agent: Agent, task: str, session: AdvancedSQLiteSession, silent: bool = False):
     if agent.mcp_servers:
         for server in agent.mcp_servers:
             if getattr(server, "session", None) is None:
@@ -92,15 +94,15 @@ async def _run_task_async(agent: Agent, task: str, session: AdvancedSQLiteSessio
         )
         async for event in stream.stream_events():
             if event.type == "raw_response_event" and isinstance(
-                event.data, ResponseTextDeltaEvent):
+                event.data, ResponseTextDeltaEvent) and not silent:
                 print(event.data.delta, end="", flush=True)
         
         return stream
-
     finally:
         for server in agent.mcp_servers:
             if getattr(server, "session", None) is not None:
                 await server.cleanup()
+
 
 
 def init_mcp_servers():
@@ -172,12 +174,51 @@ def run_task(agent: Agent, task: str, session: AdvancedSQLiteSession):
     print()
 
 
+def run_task_gateway(agent: Agent, task: str, session: AdvancedSQLiteSession):
+    loop = _get_default_loop()
+    result = loop.run_until_complete(_run_task_async(agent, task, session, silent=True))
+
+    return result
+
+
 def mainloop(session_id: str = ""):
     print("initializing agent...")
     agent = create_main_agent()
     print("starting session...")
     session = create_session(session_id=session_id)
     print("ready.")
+
+    if configuration.get("connection", {}).get("signal", {}).get("activate", False):
+        print("activating signal connection...")
+        signal_client = SignalClient(
+            account=configuration["connection"]["signal"]["account"],
+            url=configuration["connection"]["signal"]["url"],
+        )
+
+        @signal_client.on_message
+        async def handle(msg: SignalMessage):
+            nonlocal session
+
+            if msg.sender not in configuration["connection"]["signal"]["allowed_users"]:
+                await signal_client.send(msg.chat_id, f"Unauthorized user: {msg.sender}")
+                return
+            
+            if msg.text.strip().startswith("/"):
+                command = msg.text.strip().split()[0][1:].lower()
+
+                if command == "new":
+                    session = create_session(str(uuid4()))
+                    await signal_client.send(msg.chat_id, f"Started new session with ID: {session.session_id}")
+                    return
+
+            await signal_client.send_typing(msg.chat_id)
+            
+            answer = run_task_gateway(agent, task, session=session)
+
+            await signal_client.send(msg.chat_id, answer.final_output.strip())
+            await signal_client.stop_typing(msg.chat_id)
+
+        asyncio.run(signal_client.run())
 
     while True:
         task = input(" >> ").strip()

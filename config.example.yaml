@@ -18,6 +18,7 @@ providers:
     base_url: https://openrouter.ai/api/v1
 
 max_turns: 50
+tool_output_length_limit: 2048
 
 mcp:
   searxng:
@@ -34,3 +35,11 @@ context:
 databases:
   memory: "./data/agent.db"
   sessions: "./data/sessions.db"
+
+connection:
+  signal:
+    activate: false
+    
+    account: +1234567890
+    url: http://127.0.0.1:8080
+    allowed_users: []

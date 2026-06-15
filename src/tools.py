@@ -9,7 +9,7 @@ from typing import List
 
 from agents import function_tool, Tool
 
-from .util import squeeze
+from .util import squeeze, limit_length
 from .db import (
     delete_todos,
     new_memory,
@@ -178,9 +178,9 @@ def _get_command_output(command: str, timeout: int = 30) -> dict[str, str]:
     stdout, stderr = process.communicate(timeout=timeout)
 
     if process.returncode != 0:
-        return {"error": f"{stderr.decode()}"}
+        return {"error": f"{limit_length(stderr.decode())}"}
 
-    return {"output": stdout.decode().strip()}
+    return {"output": limit_length(stdout.decode().strip())}
 
 
 @function_tool(
@@ -227,7 +227,7 @@ def terminal_non_blocking_tool(command: str) -> dict[str, str]:
 def read_file_tool(path: str) -> dict[str, str]:
     try:
         with open(path, "r") as f:
-            return {"content": f.read()}
+            return {"content": limit_length(f.read())}
     except Exception as e:
         return {"error": str(e)}
 
@@ -241,7 +241,7 @@ def read_file_tool(path: str) -> dict[str, str]:
 def write_file_tool(path: str, content: str) -> dict[str, str]:
     try:
         with open(path, "w") as f:
-            f.write(content)
+            f.write(limit_length(content))
         return {"result": "OK"}
     except Exception as e:
         return {"error": str(e)}
