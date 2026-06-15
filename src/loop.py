@@ -197,7 +197,7 @@ def mainloop(session_id: str = ""):
 
         @signal_client.on_message
         async def handle(msg: SignalMessage):
-            nonlocal session
+            nonlocal session, agent
 
             if msg.sender not in configuration["connection"]["signal"]["allowed_users"]:
                 await signal_client.send(msg.chat_id, f"Unauthorized user: {msg.sender}")
@@ -208,6 +208,7 @@ def mainloop(session_id: str = ""):
 
                 if command == "new":
                     session = create_session(str(uuid4()))
+                    agent = create_main_agent()
                     await signal_client.send(msg.chat_id, f"Started new session with ID: {session.session_id}")
                     return
             
