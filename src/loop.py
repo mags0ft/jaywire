@@ -5,7 +5,7 @@ The main loop that keeps the agent running.
 import asyncio
 from uuid import uuid4
 import warnings
-from os import getenv
+from os import getenv, _exit
 
 from openai import AsyncOpenAI
 from openai.types import Reasoning
@@ -210,10 +210,16 @@ def mainloop(session_id: str = ""):
                     session = create_session(str(uuid4()))
                     await signal_client.send(msg.chat_id, f"Started new session with ID: {session.session_id}")
                     return
+            
+                if command == "kill":
+                    await signal_client.send(msg.chat_id, f"Killed current session with ID: {session.session_id}")
+                    # exit the entire program, which will kill the agent and all sessions and async tasks
+                    _exit(0)
+                    return
 
             await signal_client.send_typing(msg.chat_id)
             
-            answer = run_task_gateway(agent, task, session=session)
+            answer = await _run_task_async(agent, msg.text.strip(), session, silent=True)
 
             await signal_client.send(msg.chat_id, answer.final_output.strip())
             await signal_client.stop_typing(msg.chat_id)
